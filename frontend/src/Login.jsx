@@ -1,8 +1,33 @@
+import { useState } from "react";
+import { useAuth } from "./context/AuthContext";
 
-function Login({ onSwitch }) {
+function Login({ onSwitch, onLoginSuccess }) {
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Login form submitted!");
+
+    const lowerEmail = email.toLowerCase();
+    let detectedRole = "student";
+    if (lowerEmail.includes("admin")) {
+      detectedRole = "admin";
+    } else if (lowerEmail.includes("librarian")) {
+      detectedRole = "librarian";
+    }
+
+    const derivedName = email.split("@")[0] || "Library User";
+
+    login({
+      name: derivedName,
+      email,
+      role: detectedRole,
+    });
+
+    if (onLoginSuccess) {
+      onLoginSuccess();
+    }
   };
 
   return (
@@ -16,6 +41,8 @@ function Login({ onSwitch }) {
           <input
             type="email"
             placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
@@ -25,6 +52,8 @@ function Login({ onSwitch }) {
           <input
             type="password"
             placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
@@ -35,7 +64,7 @@ function Login({ onSwitch }) {
       </form>
 
       <p className="switch-text">
-        Don't have an account?
+        Don&apos;t have an account?
         <span onClick={onSwitch}> Register</span>
       </p>
     </div>

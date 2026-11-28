@@ -1,13 +1,15 @@
 import { useState } from "react";
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+import HomePage from "./pages/HomePage";
 import Login from "./Login";
 import Register from "./Register";
 import Profile from "./profile";
 import "./App.css";
 
-function App() {
-  const [page, setPage] = useState("login");
+function AppContent() {
+  const [page, setPage] = useState("home");
 
-  // Small demo bar to jump between the three pages
   const nav = (
     <div
       style={{
@@ -16,12 +18,14 @@ function App() {
         right: 10,
         display: "flex",
         gap: 8,
-        zIndex: 10,
+        zIndex: 20,
+        flexWrap: "wrap",
       }}
     >
-      {["login", "register", "profile"].map((p) => (
+      {["home", "login", "register", "profile", "librarian"].map((p) => (
         <button
           key={p}
+          type="button"
           onClick={() => setPage(p)}
           style={{
             padding: "6px 12px",
@@ -40,6 +44,15 @@ function App() {
     </div>
   );
 
+  if (page === "home") {
+    return (
+      <>
+        {nav}
+        <HomePage onNavigate={(target) => setPage(target)} />
+      </>
+    );
+  }
+
   if (page === "profile") {
     return (
       <>
@@ -49,17 +62,56 @@ function App() {
     );
   }
 
+  if (page === "librarian") {
+    return (
+      <>
+        {nav}
+        <ProtectedRoute
+          allowedRoles={["librarian", "admin"]}
+          onBackHome={() => setPage("home")}
+        >
+          <div className="lib-container">
+            <div className="lib-card">
+              <h1>Librarian Management</h1>
+              <p className="subtitle">
+                Authorized view for librarians and admins to manage books and loans.
+              </p>
+              <button
+                type="button"
+                className="lib-btn-primary"
+                onClick={() => setPage("home")}
+              >
+                Back to Home Page
+              </button>
+            </div>
+          </div>
+        </ProtectedRoute>
+      </>
+    );
+  }
+
   return (
     <>
       {nav}
       <div className="app">
-        {page === "login" ? (
-          <Login onSwitch={() => setPage("register")} />
+   {page === "login" ? (
+          <Login
+            onSwitch={() => setPage("register")}
+            onLoginSuccess={() => setPage("home")}
+          />
         ) : (
           <Register onSwitch={() => setPage("login")} />
         )}
       </div>
     </>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
